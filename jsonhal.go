@@ -45,7 +45,6 @@ type Embedder interface {
 type Hal struct {
 	Links    map[string]*Link    `json:"_links,omitempty" mapstructure:"_links"`
 	Embedded map[string]Embedded `json:"_embedded,omitempty" mapstructure:"_embedded"`
-	decoder  *mapstructure.Decoder
 }
 
 // SetLink sets a link (self, next, etc). Title argument is optional
@@ -133,16 +132,13 @@ func (h *Hal) DecodeEmbedded(name string, result interface{}) (err error) {
 	if err != nil {
 		panic(err)
 	}
-	//setup a new decoder if not already present
-	if h.decoder == nil {
-		dec, err = mapstructure.NewDecoder(&mapstructure.DecoderConfig{Result: result, DecodeHook: h.decodeHook})
-		if err != nil {
-			panic(err)
-		}
-		h.decoder = dec
+
+	dec, err = mapstructure.NewDecoder(&mapstructure.DecoderConfig{Result: result, DecodeHook: h.decodeHook})
+	if err != nil {
+		panic(err)
 	}
 
-	err = h.decoder.Decode(e)
+	err = dec.Decode(e)
 	if err != nil {
 		panic(err)
 	}
